@@ -11,6 +11,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
+import android.util.Log;
 import android.view.View;
 import android.widget.DatePicker;
 import android.widget.DatePicker.OnDateChangedListener;
@@ -56,16 +57,18 @@ public class DatePickerFragment extends DialogFragment {
 			}
 		});
 
-		return new AlertDialog.Builder(getActivity()).setView(v)
+		return new AlertDialog.Builder(getActivity())
+				.setView(v)
 				.setTitle(R.string.date_picker_title)
 				.setPositiveButton(android.R.string.ok,
 						new DialogInterface.OnClickListener() {
-							
+
 							@Override
-							public void onClick(DialogInterface dialog, int which) {
+							public void onClick(DialogInterface dialog,
+									int which) {
 								// TODO Auto-generated method stub
 								sendResult(Activity.RESULT_OK);
-								
+
 							}
 						}).create();
 	}
@@ -75,6 +78,7 @@ public class DatePickerFragment extends DialogFragment {
 			return;
 		Intent i = new Intent();
 		i.putExtra(EXTRA_DATE, mDate);
+		Log.d(CrimeFragment.TAG,getTargetFragment().toString() + " &&& " + mDate.toString());
 		getTargetFragment().onActivityResult(getTargetRequestCode(),
 				resultCode, i);
 	}

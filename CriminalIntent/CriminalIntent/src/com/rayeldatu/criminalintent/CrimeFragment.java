@@ -10,6 +10,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -25,6 +26,7 @@ public class CrimeFragment extends Fragment {
 	private EditText mTitleField;
 	private Button mDateButton;
 	private CheckBox mSolvedCheckBox;
+	public static final String TAG = "Checker: ";
 	public static final String EXTRA_CRIME_ID = "com.rayeldatu.criminalintent.crime_id";
 	private static final String DIALOG_DATE = "date";
 	private static final int REQUEST_DATE = 0;
@@ -108,19 +110,27 @@ public class CrimeFragment extends Fragment {
 	public void returnResult() {
 		getActivity().setResult(Activity.RESULT_OK, null);
 	}
-
+	
 	@Override
-	public void onActivityResult(int requestCode, int resultCode, Intent data){
-		if(resultCode != Activity.RESULT_OK) return;
-		if(resultCode == REQUEST_DATE){
+	public void onActivityResult(int requestCode, int resultCode, Intent data) {
+		Log.d(TAG,"onActivityResult is Called!" + " | requestCode: " + requestCode + " | resultCode: " + resultCode);
+		
+		if (resultCode != Activity.RESULT_OK){
+			Log.d(TAG, "RESULT_OK");
+			return;
+		}
+		if (requestCode == REQUEST_DATE) {
 			Date date = (Date) data
 					.getSerializableExtra(DatePickerFragment.EXTRA_DATE);
+			Log.d(TAG, date.toString());
 			mCrime.setDate(date);
 			updateDate();
 		}
 	}
-	
-	public void updateDate(){
+
+	public void updateDate() {
+
+		Log.d(TAG, mCrime.getDate().toString());
 		mDateButton.setText(mCrime.getDate().toString());
 	}
 }
