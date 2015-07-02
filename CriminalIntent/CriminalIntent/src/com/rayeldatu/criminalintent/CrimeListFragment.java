@@ -16,7 +16,7 @@ public class CrimeListFragment extends ListFragment {
 	private ArrayList<Crime> mCrimes;
 	private static final String TAG = "CrimeListFragment";
 	private static final int REQUEST_CRIME = 1;
-	
+
 	private class CrimeAdapter extends ArrayAdapter<Crime> {
 		public CrimeAdapter(ArrayList<Crime> crimes) {
 			super(getActivity(), 0, crimes);
@@ -65,18 +65,18 @@ public class CrimeListFragment extends ListFragment {
 		i.putExtra(CrimeFragment.EXTRA_CRIME_ID, c.getId());
 		startActivityForResult(i, REQUEST_CRIME);
 	}
-	
+
 	@Override
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {
-		if(requestCode == REQUEST_CRIME){
-			
+		if (requestCode == REQUEST_CRIME) {
+
 		}
 	}
-	
+
 	@Override
-	public void onResume(){
+	public void onResume() {
 		super.onResume();
 		((CrimeAdapter) getListAdapter()).notifyDataSetChanged();
 	}
-	
+
 }
