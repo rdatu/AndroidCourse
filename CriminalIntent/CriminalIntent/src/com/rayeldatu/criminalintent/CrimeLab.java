@@ -10,7 +10,7 @@ public class CrimeLab {
 	private Context mAppContext;
 	private ArrayList<Crime> mCrimes;
 
-	private void addTempCrimes() {
+	private void addTempCrimes() { //Temporary method to add sample crimes.
 		for (int i = 0; i < 100; i++) {
 			Crime c = new Crime();
 			c.setTitle("Crime #" + i);
@@ -22,9 +22,7 @@ public class CrimeLab {
 	private CrimeLab(Context appContext) {
 		mAppContext = appContext;
 		mCrimes = new ArrayList<Crime>();
-
-		// Temporary Crimes
-		addTempCrimes();
+		
 	}
 
 	public static CrimeLab get(Context c) {
@@ -45,5 +43,9 @@ public class CrimeLab {
 			}
 		}
 		return null;
+	}
+	
+	public void addCrime(Crime c){
+		mCrimes.add(c);
 	}
 }

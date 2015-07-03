@@ -5,13 +5,16 @@ import java.util.UUID;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.NavUtils;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
@@ -37,12 +40,20 @@ public class CrimeFragment extends Fragment {
 		UUID crimeId = (UUID) getArguments().getSerializable(EXTRA_CRIME_ID);
 
 		mCrime = CrimeLab.get(getActivity()).getCrime(crimeId);
+
+		setHasOptionsMenu(true);
 	}
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup parent,
 			Bundle savedInstanceState) {
 		View v = inflater.inflate(R.layout.fragment_crime, parent, false);
+
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+			if (NavUtils.getParentActivityName(getActivity()) != null) {
+				getActivity().getActionBar().setDisplayHomeAsUpEnabled(true);
+			}
+		}
 
 		mDateButton = (Button) v.findViewById(R.id.crime_date);
 		updateDate();
@@ -96,6 +107,20 @@ public class CrimeFragment extends Fragment {
 		return v;
 	}
 
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch (item.getItemId()) {
+		case android.R.id.home:
+			if (NavUtils.getParentActivityName(getActivity()) != null) {
+				Log.d(TAG,NavUtils.getParentActivityName(getActivity()).toString() + " -   - - - - - ");
+				NavUtils.navigateUpFromSameTask(getActivity());
+			}
+			return true;
+		default:
+			return super.onOptionsItemSelected(item);
+		}
+	}
+
 	public static CrimeFragment newInstance(UUID crimeId) {
 		Bundle args = new Bundle();
 		args.putSerializable(EXTRA_CRIME_ID, crimeId);
@@ -110,12 +135,13 @@ public class CrimeFragment extends Fragment {
 	public void returnResult() {
 		getActivity().setResult(Activity.RESULT_OK, null);
 	}
-	
+
 	@Override
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {
-		Log.d(TAG,"onActivityResult is Called!" + " | requestCode: " + requestCode + " | resultCode: " + resultCode);
-		
-		if (resultCode != Activity.RESULT_OK){
+		Log.d(TAG, "onActivityResult is Called!" + " | requestCode: "
+				+ requestCode + " | resultCode: " + resultCode);
+
+		if (resultCode != Activity.RESULT_OK) {
 			Log.d(TAG, "RESULT_OK");
 			return;
 		}
