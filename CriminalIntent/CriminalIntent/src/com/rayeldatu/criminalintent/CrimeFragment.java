@@ -3,6 +3,8 @@ package com.rayeldatu.criminalintent;
 import java.util.Date;
 import java.util.UUID;
 
+import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Build;
@@ -44,6 +46,7 @@ public class CrimeFragment extends Fragment {
 		setHasOptionsMenu(true);
 	}
 
+	@TargetApi(11)
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup parent,
 			Bundle savedInstanceState) {
@@ -112,28 +115,14 @@ public class CrimeFragment extends Fragment {
 		switch (item.getItemId()) {
 		case android.R.id.home:
 			if (NavUtils.getParentActivityName(getActivity()) != null) {
-				Log.d(TAG,NavUtils.getParentActivityName(getActivity()).toString() + " -   - - - - - ");
+				Log.d(TAG, NavUtils.getParentActivityName(getActivity())
+						.toString() + " -   - - - - - ");
 				NavUtils.navigateUpFromSameTask(getActivity());
 			}
 			return true;
 		default:
 			return super.onOptionsItemSelected(item);
 		}
-	}
-
-	public static CrimeFragment newInstance(UUID crimeId) {
-		Bundle args = new Bundle();
-		args.putSerializable(EXTRA_CRIME_ID, crimeId);
-
-		CrimeFragment fragment = new CrimeFragment();
-		fragment.setArguments(args);
-
-		return fragment;
-
-	}
-
-	public void returnResult() {
-		getActivity().setResult(Activity.RESULT_OK, null);
 	}
 
 	@Override
@@ -152,6 +141,27 @@ public class CrimeFragment extends Fragment {
 			mCrime.setDate(date);
 			updateDate();
 		}
+	}
+
+	@Override
+	public void onPause() {
+		super.onPause();
+		CrimeLab.get(getActivity()).saveCrimes();
+	}
+
+	public static CrimeFragment newInstance(UUID crimeId) {
+		Bundle args = new Bundle();
+		args.putSerializable(EXTRA_CRIME_ID, crimeId);
+
+		CrimeFragment fragment = new CrimeFragment();
+		fragment.setArguments(args);
+
+		return fragment;
+
+	}
+
+	public void returnResult() {
+		getActivity().setResult(Activity.RESULT_OK, null);
 	}
 
 	public void updateDate() {

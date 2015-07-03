@@ -4,13 +4,20 @@ import java.util.ArrayList;
 import java.util.UUID;
 
 import android.content.Context;
+import android.util.Log;
 
 public class CrimeLab {
-	private static CrimeLab sCrimeLab;
-	private Context mAppContext;
+
 	private ArrayList<Crime> mCrimes;
 
-	private void addTempCrimes() { //Temporary method to add sample crimes.
+	private static final String TAG = "CrimeLab";
+	private static final String FILENAME = "crimes.json";
+
+	private CriminalIntentJSONSerializer mSerializer;
+	private static CrimeLab sCrimeLab;
+	private Context mAppContext;
+
+	private void addTempCrimes() { // Temporary method to add sample crimes.
 		for (int i = 0; i < 100; i++) {
 			Crime c = new Crime();
 			c.setTitle("Crime #" + i);
@@ -18,11 +25,29 @@ public class CrimeLab {
 			mCrimes.add(c);
 		}
 	}
+	
+	public boolean saveCrimes(){
+		try{
+			mSerializer.saveCrimes(mCrimes);
+			Log.d("TAG", "crimes saved to file");	
+			return true;			
+		}catch (Exception e){
+			Log.e(TAG, "Error saving crimes: ", e);
+			return false;
+		}
+	}
 
 	private CrimeLab(Context appContext) {
 		mAppContext = appContext;
-		mCrimes = new ArrayList<Crime>();
+		mSerializer = new CriminalIntentJSONSerializer(mAppContext,FILENAME);
 		
+		try{
+			mCrimes = mSerializer.loadCrimes();
+		}
+		catch(Exception e){
+			mCrimes = new ArrayList<Crime>();
+			Log.e(TAG, "Error Loading Crimes",e);
+		}
 	}
 
 	public static CrimeLab get(Context c) {
@@ -44,8 +69,8 @@ public class CrimeLab {
 		}
 		return null;
 	}
-	
-	public void addCrime(Crime c){
+
+	public void addCrime(Crime c) {
 		mCrimes.add(c);
 	}
 }
