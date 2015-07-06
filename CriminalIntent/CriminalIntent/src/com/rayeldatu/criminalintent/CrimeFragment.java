@@ -41,6 +41,7 @@ public class CrimeFragment extends Fragment {
 	private ImageView mPhotoView;
 	private ImageButton mPhotoButton;
 	private Button mSuspectButton;
+	private Callbacks mCallbacks;
 
 	public static final String EXTRA_CRIME_ID = "com.rayeldatu.criminalintent.crime_id";
 	private static final String DIALOG_DATE = "date";
@@ -49,6 +50,22 @@ public class CrimeFragment extends Fragment {
 	private static final int REQUEST_CONTACT = 2;
 	private static final String TAG = "CrimeFragment";
 	private static final String DIALOG_IMAGE = "image";
+
+	public interface Callbacks {
+		void onCrimeUpdated(Crime crime);
+	}
+
+	@Override
+	public void onAttach(Activity activity) {
+		super.onAttach(activity);
+		mCallbacks = (Callbacks) activity;
+	}
+
+	@Override
+	public void onDetach() {
+		super.onDetach();
+		mCallbacks = null;
+	}
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -95,6 +112,7 @@ public class CrimeFragment extends Fragment {
 					public void onCheckedChanged(CompoundButton buttonView,
 							boolean isChecked) {
 						mCrime.setSolved(isChecked);
+						mCallbacks.onCrimeUpdated(mCrime);
 					}
 				});
 
@@ -107,6 +125,7 @@ public class CrimeFragment extends Fragment {
 					int count) {
 				// TODO Auto-generated method stub
 				mCrime.setTitle(s.toString());
+				mCallbacks.onCrimeUpdated(mCrime);
 			}
 
 			@Override
@@ -242,6 +261,8 @@ public class CrimeFragment extends Fragment {
 					.getSerializableExtra(DatePickerFragment.EXTRA_DATE);
 			Log.d(TAG, date.toString());
 			mCrime.setDate(date);
+			mCallbacks.onCrimeUpdated(mCrime);
+
 			updateDate();
 		} else if (requestCode == REQUEST_PHOTO) {
 			String filename = data
@@ -249,6 +270,8 @@ public class CrimeFragment extends Fragment {
 			if (filename != null) {
 				Photo p = new Photo(filename);
 				mCrime.setPhoto(p);
+				mCallbacks.onCrimeUpdated(mCrime);
+
 				showPhoto();
 			}
 		} else if (requestCode == REQUEST_CONTACT) {
@@ -258,13 +281,15 @@ public class CrimeFragment extends Fragment {
 
 			Cursor c = getActivity().getContentResolver().query(contactUri,
 					queryFields, null, null, null);
-			if(c.getCount() == 0 ){
+			if (c.getCount() == 0) {
 				c.close();
 				return;
 			}
 			c.moveToFirst();
 			String suspect = c.getString(0);
 			mCrime.setSuspect(suspect);
+			mCallbacks.onCrimeUpdated(mCrime);
+
 			mSuspectButton.setText(suspect);
 			c.close();
 		}

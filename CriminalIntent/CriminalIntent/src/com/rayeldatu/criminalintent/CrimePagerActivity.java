@@ -12,7 +12,7 @@ import android.support.v4.view.ViewPager;
 import android.support.v4.view.ViewPager.OnPageChangeListener;
 import android.util.Log;
 
-public class CrimePagerActivity extends FragmentActivity {
+public class CrimePagerActivity extends FragmentActivity implements CrimeFragment.Callbacks {
 	private ViewPager mViewPager;
 	private ArrayList<Crime> mCrimes;
 
@@ -79,5 +79,11 @@ public class CrimePagerActivity extends FragmentActivity {
 
 					}
 				});
+	}
+
+	@Override
+	public void onCrimeUpdated(Crime crime) {
+		// TODO Auto-generated method stub
+		
 	}
 }
