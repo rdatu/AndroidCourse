@@ -1,11 +1,14 @@
 package com.rayeldatu.criminalintent;
 
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
+import java.util.UUID;
 
 import android.annotation.TargetApi;
+import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.hardware.Camera;
 import android.hardware.Camera.Size;
 import android.os.Build;
@@ -22,15 +25,67 @@ import android.widget.Button;
 @SuppressWarnings("deprecation")
 public class CrimeCameraFragment extends Fragment {
 	private static final String TAG = "CrimeCameraFragment";
+	public static final String EXTRA_PHOTO_FILENAME = "com.rayeldatu.criminalintent.photo_filename";
 	private Camera mCamera;
 	private SurfaceView mSurfaceView;
+	private View mProgressBarContainer;
 
+	private Camera.ShutterCallback mShutterCallback = new Camera.ShutterCallback() {
+
+		@Override
+		public void onShutter() {
+			// TODO Auto-generated method stub
+			mProgressBarContainer.setVisibility(View.VISIBLE);
+		}
+	};
+
+	private Camera.PictureCallback mJpegCallback = new Camera.PictureCallback() {
+
+		@Override
+		public void onPictureTaken(byte[] data, Camera camera) {
+			// TODO Auto-generated method stub
+			String filename = UUID.randomUUID().toString() + ".jpg";
+			FileOutputStream os = null;
+			boolean success = true;
+
+			try {
+				os = getActivity().openFileOutput(filename,
+						Context.MODE_PRIVATE);
+				os.write(data);
+			} catch (Exception e) {
+				Log.e(TAG, "Error writing to a file", e);
+				success = false;
+			} finally {
+				try {
+					if (os != null) {
+						os.close();
+					}
+				} catch (Exception e) {
+					Log.e(TAG, "Error closing file " + filename, e);
+					success = false;
+				}
+			}
+
+			if (success) {
+				Intent i = new Intent();
+				i.putExtra(EXTRA_PHOTO_FILENAME, filename);
+				getActivity().setResult(Activity.RESULT_OK, i);
+			} else {
+				getActivity().setResult(Activity.RESULT_CANCELED);
+			}
+			getActivity().finish();
+		}
+	};
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup parent,
 			Bundle savedInstanceState) {
 		View v = inflater
 				.inflate(R.layout.fragment_crime_camera, parent, false);
+
+		mProgressBarContainer = v
+				.findViewById(R.id.crime_camera_progressContainer);
+		mProgressBarContainer.setVisibility(View.INVISIBLE);
 
 		Button takePictureButton = (Button) v
 				.findViewById(R.id.crime_camera_takePictureButton);
@@ -39,7 +94,9 @@ public class CrimeCameraFragment extends Fragment {
 			@Override
 			public void onClick(View v) {
 				// TODO Auto-generated method stub
-				getActivity().finish();
+				if (mCamera != null)
+					mCamera.takePicture(mShutterCallback, null,
+							mJpegCallback);
 			}
 		});
 

@@ -7,6 +7,7 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -14,6 +15,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.NavUtils;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -26,17 +28,22 @@ import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 
 public class CrimeFragment extends Fragment {
 	private Crime mCrime;
 	private EditText mTitleField;
 	private Button mDateButton;
 	private CheckBox mSolvedCheckBox;
-	public static final String TAG = "Checker: ";
+	private ImageView mPhotoView;
+	private ImageButton mPhotoButton;
+
 	public static final String EXTRA_CRIME_ID = "com.rayeldatu.criminalintent.crime_id";
 	private static final String DIALOG_DATE = "date";
 	private static final int REQUEST_DATE = 0;
-	private ImageButton mPhotoButton;
+	private static final int REQUEST_PHOTO = 1;
+	private static final String TAG = "CrimeFragment";
+	private static final String DIALOG_IMAGE = "image";
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -116,7 +123,24 @@ public class CrimeFragment extends Fragment {
 			public void onClick(View v) {
 				// TODO Auto-generated method stub
 				Intent i = new Intent(getActivity(), CrimeCameraActivity.class);
-				startActivity(i);
+				startActivityForResult(i, REQUEST_PHOTO);
+			}
+		});
+
+		mPhotoView = (ImageView) v.findViewById(R.id.crime_imageView);
+		mPhotoView.setOnClickListener(new View.OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				// TODO Auto-generated method stub
+				Photo p = mCrime.getPhoto();
+				if (p == null) {
+					return;
+				}
+				FragmentManager fm = getActivity().getSupportFragmentManager();
+				String path = getActivity().getFileStreamPath(p.getFilename())
+						.getAbsolutePath();
+				ImageFragment.newInstance(path).show(fm, DIALOG_IMAGE);
 			}
 		});
 
@@ -126,7 +150,44 @@ public class CrimeFragment extends Fragment {
 			mPhotoButton.setEnabled(false);
 		}
 
+		Button reportButton = (Button) v.findViewById(R.id.crime_reportButton);
+		reportButton.setOnClickListener(new View.OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				// TODO Auto-generated method stub
+				Intent i = new Intent(Intent.ACTION_SEND);
+				i.setType("text/plain");
+				i.putExtra(Intent.EXTRA_TEXT, getCrimeReport());
+				i.putExtra(Intent.EXTRA_SUBJECT,getString(R.string.crime_report_subject));
+				startActivity(i);
+			}
+		});
+
 		return v;
+	}
+
+	private void showPhoto() {
+		Photo p = mCrime.getPhoto();
+		BitmapDrawable b = null;
+		if (p != null) {
+			String path = getActivity().getFileStreamPath(p.getFilename())
+					.getAbsolutePath();
+			b = PictureUtils.getScaledDrawable(getActivity(), path);
+		}
+		mPhotoView.setImageDrawable(b);
+	}
+
+	@Override
+	public void onStart() {
+		super.onStart();
+		showPhoto();
+	}
+
+	@Override
+	public void onStop() {
+		super.onStop();
+		PictureUtils.cleanImageView(mPhotoView);
 	}
 
 	@Override
@@ -159,6 +220,14 @@ public class CrimeFragment extends Fragment {
 			Log.d(TAG, date.toString());
 			mCrime.setDate(date);
 			updateDate();
+		} else if (requestCode == REQUEST_PHOTO) {
+			String filename = data
+					.getStringExtra(CrimeCameraFragment.EXTRA_PHOTO_FILENAME);
+			if (filename != null) {
+				Photo p = new Photo(filename);
+				mCrime.setPhoto(p);
+				showPhoto();
+			}
 		}
 	}
 
@@ -187,5 +256,29 @@ public class CrimeFragment extends Fragment {
 
 		Log.d(TAG, mCrime.getDate().toString());
 		mDateButton.setText(mCrime.getDate().toString());
+	}
+
+	private String getCrimeReport() {
+		String solvedString = null;
+		if (mCrime.isSolved()) {
+			solvedString = getString(R.string.crime_report_solved);
+		} else {
+			solvedString = getString(R.string.crime_report_unsolved);
+		}
+
+		String dateFormat = "EEE, MM dd";
+		String dateString = DateFormat.format(dateFormat, mCrime.getDate())
+				.toString();
+
+		String suspect = mCrime.getSuspect();
+		if (suspect == null) {
+			suspect = getString(R.string.crime_report_no_suspect);
+		} else {
+			suspect = getString(R.string.crime_report_suspect);
+		}
+
+		String report = getString(R.string.crime_report, mCrime.getTitle(),
+				dateString, solvedString, suspect);
+		return report;
 	}
 }

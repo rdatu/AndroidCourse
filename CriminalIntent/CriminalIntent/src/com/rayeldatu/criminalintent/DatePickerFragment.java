@@ -78,7 +78,6 @@ public class DatePickerFragment extends DialogFragment {
 			return;
 		Intent i = new Intent();
 		i.putExtra(EXTRA_DATE, mDate);
-		Log.d(CrimeFragment.TAG,getTargetFragment().toString() + " &&& " + mDate.toString());
 		getTargetFragment().onActivityResult(getTargetRequestCode(),
 				resultCode, i);
 	}
