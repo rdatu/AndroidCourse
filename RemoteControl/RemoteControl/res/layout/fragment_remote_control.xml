@@ -1,8 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/fragment_remote_control_tableLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:stretchColumns="*" >
+    android:stretchColumns="*"
+    tools:ignore="all" >
 
     <TextView
         android:id="@+id/fragment_remote_control_selectedTextView"
@@ -24,25 +27,20 @@
         android:textColor="#cccccc"
         android:textSize="20dp" />
 
-    <TableRow android:layout_weight="1" >
+    <include
+        android:layout_weight="1"
+        layout="@layout/button_row" />
 
-        <Button
-            android:id="@+id/fragment_remote_control_zeroButton"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:text="0" />
+    <include
+        android:layout_weight="1"
+        layout="@layout/button_row" />
 
-        <Button
-            android:id="@+id/fragment_remote_control_oneButton"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:text="1" />
+    <include
+        android:layout_weight="1"
+        layout="@layout/button_row" />
 
-        <Button
-            android:id="@+id/fragment_remote_control_enterButton"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:text="Enter" />
-    </TableRow>
+    <include
+        android:layout_weight="1"
+        layout="@layout/button_row" />
 
 </TableLayout>
