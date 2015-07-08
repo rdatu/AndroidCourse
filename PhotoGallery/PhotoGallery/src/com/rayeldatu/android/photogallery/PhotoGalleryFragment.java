@@ -116,4 +116,10 @@ public class PhotoGalleryFragment extends Fragment {
 			return convertView;
 		}
 	}
+	@Override
+	public void onDestroyView(){
+		super.onDestroyView();
+		mThumbnailThread.clearQueue();
+		
+	}
 }

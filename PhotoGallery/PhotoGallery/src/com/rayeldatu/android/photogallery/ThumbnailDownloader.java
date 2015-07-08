@@ -90,4 +90,10 @@ public class ThumbnailDownloader<Token> extends HandlerThread {
 		};
 
 	}
+	public void clearQueue(){
+		mHandler.removeMessages(MESSAGE_DOWNLOAD);
+		requestMap.clear();
+	}
+	
+	
 }
