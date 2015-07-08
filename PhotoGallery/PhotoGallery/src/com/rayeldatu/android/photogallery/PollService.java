@@ -18,7 +18,7 @@ import android.util.Log;
 
 public class PollService extends IntentService {
 	private static final String TAG = "PollService";
-	private static final int POLL_INTERVAL = 1000 * 15;
+	private static final int POLL_INTERVAL = 1000 * 60 * 5;
 
 	public PollService() {
 		super(TAG);
