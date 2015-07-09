@@ -31,7 +31,7 @@ public class RunManager {
 	private PendingIntent getLocationPendingIntent(boolean shouldCreate) {
 		Intent broadcast = new Intent(ACTION_LOCATION);
 		int flags = shouldCreate ? 0 : PendingIntent.FLAG_NO_CREATE;
-		return PendingIntent.getBroadcast(mAppContext, 0, broadcast, 0);
+		return PendingIntent.getBroadcast(mAppContext, 0, broadcast, flags);
 	}
 
 	public void startLocationUpdates() {

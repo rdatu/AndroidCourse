@@ -6,6 +6,7 @@ import android.content.IntentFilter;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,6 +14,7 @@ import android.widget.Button;
 import android.widget.TextView;
 
 public class RunFragment extends Fragment {
+	private static final String TAG = "RunFragment";
 	private Button mStartButton, mStopButton;
 	private TextView mStartedTextView, mLatitudeTextView, mLongitudeTextView,
 			mAltitudeTextView, mDurationTextView;
@@ -91,7 +93,8 @@ public class RunFragment extends Fragment {
 
 	private void updateUI() {
 		boolean started = mRunManager.isTrackingRun();
-
+		Log.d(TAG, "STARTED: " + started);
+		
 		if (mRun != null)
 			mStartedTextView.setText(mRun.getStartDate().toString());
 
