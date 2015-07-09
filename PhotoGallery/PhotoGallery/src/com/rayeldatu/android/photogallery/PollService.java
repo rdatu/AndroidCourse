@@ -2,11 +2,13 @@ package com.rayeldatu.android.photogallery;
 
 import java.util.ArrayList;
 
+import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.IntentService;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -18,22 +20,25 @@ import android.util.Log;
 
 public class PollService extends IntentService {
 	private static final String TAG = "PollService";
-	private static final int POLL_INTERVAL = 1000 * 60 * 5;
+
+	private static final int POLL_INTERVAL = 1000 * 60 * 5; // 5 minutes
+	public static final String PREF_IS_ALARM_ON = "isAlarmOn";
+
+	public static final String ACTION_SHOW_NOTIFICATION = "com.bignerdranch.android.photogallery.SHOW_NOTIFICATION";
+
+	public static final String PERM_PRIVATE = "com.rayeldatu.android.photogallery.PRIVATE";
 
 	public PollService() {
 		super(TAG);
-		// TODO Auto-generated constructor stub
 	}
 
 	@Override
-	protected void onHandleIntent(Intent intent) {
-		// TODO Auto-generated method stub
-		Log.i(TAG, "Received an intent: " + intent);
-
+	public void onHandleIntent(Intent intent) {
 		ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
 		@SuppressWarnings("deprecation")
 		boolean isNetworkAvailable = cm.getBackgroundDataSetting()
 				&& cm.getActiveNetworkInfo() != null;
+		Log.i(TAG, "In service! network available: " + isNetworkAvailable);
 		if (!isNetworkAvailable)
 			return;
 
@@ -57,6 +62,7 @@ public class PollService extends IntentService {
 
 		if (!resultId.equals(lastResultId)) {
 			Log.i(TAG, "Got a new result: " + resultId);
+
 			Resources r = getResources();
 			PendingIntent pi = PendingIntent.getActivity(this, 0, new Intent(
 					this, PhotoGalleryActivity.class), 0);
@@ -68,11 +74,10 @@ public class PollService extends IntentService {
 					.setContentText(r.getString(R.string.new_pictures_text))
 					.setContentIntent(pi).setAutoCancel(true).build();
 
-			NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-			notificationManager.notify(0, notification);
-		} else {
-			Log.i(TAG, "Got an old result: " + resultId);
+			showBackgroundNotification(0, notification);
+			
 		}
+
 		prefs.edit().putString(FlickrFetchr.PREF_LAST_RESULT_ID, resultId)
 				.commit();
 	}
@@ -91,11 +96,24 @@ public class PollService extends IntentService {
 			alarmManager.cancel(pi);
 			pi.cancel();
 		}
+
+		PreferenceManager.getDefaultSharedPreferences(context).edit()
+				.putBoolean(PollService.PREF_IS_ALARM_ON, isOn).commit();
 	}
 
 	public static boolean isServiceAlarmOn(Context context) {
 		Intent i = new Intent(context, PollService.class);
-		PendingIntent pi = PendingIntent.getService(context, 0, i, 0);
+		PendingIntent pi = PendingIntent.getService(context, 0, i,
+				PendingIntent.FLAG_NO_CREATE);
 		return pi != null;
+	}
+
+	void showBackgroundNotification(int requestCode, Notification notification) {
+		Intent i = new Intent(ACTION_SHOW_NOTIFICATION);
+		i.putExtra("REQUEST_CODE", requestCode);
+		i.putExtra("NOTIFICATION", notification);
+
+		sendOrderedBroadcast(i, PERM_PRIVATE, null, null, Activity.RESULT_OK,
+				null, null);
 	}
 }

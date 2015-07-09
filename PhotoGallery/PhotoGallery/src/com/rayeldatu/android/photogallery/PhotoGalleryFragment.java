@@ -8,24 +8,27 @@ import android.app.SearchManager;
 import android.app.SearchableInfo;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
-import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.SearchView;
 
-public class PhotoGalleryFragment extends Fragment {
+public class PhotoGalleryFragment extends VisibleFragment {
 	GridView mGridView;
 	ArrayList<GalleryItem> mItems;
 	ThumbnailDownloader mThumbnailThread;
@@ -33,7 +36,11 @@ public class PhotoGalleryFragment extends Fragment {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		PollService.setServiceAlarm(getActivity(), true);
+
+		setRetainInstance(true);
+		setHasOptionsMenu(true);
+
+		updateItems();
 
 		mThumbnailThread = new ThumbnailDownloader(new Handler());
 		mThumbnailThread.start();
@@ -52,6 +59,22 @@ public class PhotoGalleryFragment extends Fragment {
 		mGridView = (GridView) v.findViewById(R.id.gridView);
 
 		setupAdapter();
+
+		mGridView.setOnItemClickListener(new OnItemClickListener() {
+
+			@Override
+			public void onItemClick(AdapterView<?> parent, View view,
+					int position, long id) {
+				// TODO Auto-generated method stub
+				GalleryItem item = mItems.get(position);
+				Uri photoPageUri = Uri.parse(item.getPhotoPageUrl());
+				Intent i = new Intent(getActivity(), PhotoPageActivity.class);
+				i.setData(photoPageUri);
+				startActivity(i);
+
+			}
+
+		});
 
 		return v;
 	}
@@ -105,9 +128,8 @@ public class PhotoGalleryFragment extends Fragment {
 					.isServiceAlarmOn(getActivity());
 			PollService.setServiceAlarm(getActivity(), shouldStartAlarm);
 
-			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
 				getActivity().invalidateOptionsMenu();
-			}
 
 			return true;
 		default:
@@ -118,11 +140,13 @@ public class PhotoGalleryFragment extends Fragment {
 	@Override
 	public void onPrepareOptionsMenu(Menu menu) {
 		super.onPrepareOptionsMenu(menu);
+
 		MenuItem toggleItem = menu.findItem(R.id.menu_item_toggle_polling);
 		if (PollService.isServiceAlarmOn(getActivity())) {
 			toggleItem.setTitle(R.string.stop_polling);
-		} else
+		} else {
 			toggleItem.setTitle(R.string.start_polling);
+		}
 	}
 
 	void setupAdapter() {
@@ -156,6 +180,15 @@ public class PhotoGalleryFragment extends Fragment {
 		@Override
 		protected void onPostExecute(ArrayList<GalleryItem> items) {
 			mItems = items;
+
+			if (items.size() > 0) {
+				String resultId = items.get(0).getId();
+				PreferenceManager.getDefaultSharedPreferences(getActivity())
+						.edit()
+						.putString(FlickrFetchr.PREF_LAST_RESULT_ID, resultId)
+						.commit();
+			}
+
 			setupAdapter();
 		}
 	}

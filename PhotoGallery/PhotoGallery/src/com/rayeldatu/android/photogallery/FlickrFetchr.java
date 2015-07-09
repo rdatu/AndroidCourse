@@ -20,8 +20,9 @@ public class FlickrFetchr {
 
 	public static final String PREF_SEARCH_QUERY = "searchQuery";
 	public static final String PREF_LAST_RESULT_ID = "lastResultId";
+
 	private static final String ENDPOINT = "https://api.flickr.com/services/rest/";
-	private static final String API_KEY = "ad8e75359ee577eff5bb8bf37d8395fd";
+	private static final String API_KEY = "eb9a62fd6fd93450b9984fd8c94e13fb";
 	private static final String METHOD_GET_RECENT = "flickr.photos.getRecent";
 	private static final String METHOD_SEARCH = "flickr.photos.search";
 	private static final String PARAM_EXTRAS = "extras";
@@ -107,11 +108,13 @@ public class FlickrFetchr {
 				String caption = parser.getAttributeValue(null, "title");
 				String smallUrl = parser.getAttributeValue(null,
 						EXTRA_SMALL_URL);
+				String owner = parser.getAttributeValue(null, "owner");
 
 				GalleryItem item = new GalleryItem();
 				item.setId(id);
 				item.setCaption(caption);
 				item.setUrl(smallUrl);
+				item.setOwner(owner);
 				items.add(item);
 			}
 
