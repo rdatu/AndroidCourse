@@ -3,6 +3,7 @@ package com.rayeldatu.android.runtracker;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.location.Location;
 import android.location.LocationManager;
 import android.util.Log;
@@ -14,11 +15,21 @@ public class RunManager {
 	private Context mAppContext;
 	private LocationManager mLocationManager;
 	private static final String TEST_PROVIDER = "TEST_PROVIDER";
+	private static final String PREFS_FILE = "runs";
+	private static final String PREF_CURRENT_RUN_ID = "RunManager.currentRunId";
+
+	private RunDatabaseHelper mHelper;
+	private SharedPreferences mPrefs;
+	private long mCurrentId;
 
 	private RunManager(Context appContext) {
 		mAppContext = appContext;
 		mLocationManager = (LocationManager) mAppContext
 				.getSystemService(Context.LOCATION_SERVICE);
+		mHelper = new RunDatabaseHelper(mAppContext);
+		mPrefs = mAppContext.getSharedPreferences(PREFS_FILE,
+				Context.MODE_PRIVATE);
+		mCurrentId = mPrefs.getLong(PREF_CURRENT_RUN_ID, -1);
 	}
 
 	public static RunManager get(Context c) {
@@ -65,7 +76,32 @@ public class RunManager {
 		mAppContext.sendBroadcast(broadcast);
 	}
 
+	public Run startNewRun() {
+		Run run = insertRun();
+		startTrackingRun(run);
+		return run;
+	}
+
+	public void startTrackingRun(Run run) {
+		mCurrentId = run.getId();
+		mPrefs.edit().putLong(PREF_CURRENT_RUN_ID, mCurrentId).commit();
+		startLocationUpdates();
+	}
+
+	public void stopRun() {
+		stopLocationUpdates();
+		mCurrentId = -1;
+		mPrefs.edit().remove(PREF_CURRENT_RUN_ID).commit();
+	}
+
+	private Run insertRun() {
+		Run run = new Run();
+		run.setId(mHelper.insertRun(run));
+		return run;
+	}
+
 	public boolean isTrackingRun() {
 		return getLocationPendingIntent(false) != null;
 	}
+
 }
