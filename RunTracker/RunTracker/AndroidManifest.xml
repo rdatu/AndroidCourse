@@ -8,10 +8,22 @@
         android:minSdkVersion="9"
         android:targetSdkVersion="22" />
 
+    <permission
+        android:name="com.rayeldatu.android.runtracker.permission.MAPS_RECEIVE"
+        android:protectionLevel="signature" />
+
+    <uses-permission android:name="com.rayeldatu.android.runtracker.permission.MAPS_RECEIVE" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="com.google.android.providers.gsf.permission.READ_GSERVICES" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
     <uses-feature
         android:name="android.hardware.location.gps"
+        android:required="true" />
+    <uses-feature
+        android:glEsVersion="0x00020000"
         android:required="true" />
 
     <application
@@ -31,6 +43,9 @@
         <activity
             android:name=".RunActivity"
             android:label="@string/app_name" />
+        <activity
+            android:name=".RunMapActivity"
+            android:label="@string/app_name" />
 
         <receiver
             android:name=".TrackingLocationReceiver"
@@ -39,6 +54,10 @@
                 <action android:name="com.rayeldatu.android.runtracker.ACTION_LOCATION" />
             </intent-filter>
         </receiver>
+
+        <meta-data
+            android:name="com.google.android.maps.v2.API_KEY"
+            android:value="AIzaSyCk9is0zVmdmUfodHez7i_lv-H66fLnp9U" />
     </application>
 
 </manifest>

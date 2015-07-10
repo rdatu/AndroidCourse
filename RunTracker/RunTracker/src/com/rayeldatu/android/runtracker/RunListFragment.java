@@ -5,6 +5,8 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.support.v4.app.ListFragment;
+import android.support.v4.app.LoaderManager.LoaderCallbacks;
+import android.support.v4.content.Loader;
 import android.support.v4.widget.CursorAdapter;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -17,17 +19,16 @@ import android.widget.TextView;
 
 import com.rayeldatu.android.runtracker.RunDatabaseHelper.RunCursor;
 
-public class RunListFragment extends ListFragment {
-	private RunCursor mCursor;
+public class RunListFragment extends ListFragment implements
+		LoaderCallbacks<Cursor> {
+
 	private static final int REQUEST_NEW_RUN = 0;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setHasOptionsMenu(true);
-		mCursor = RunManager.get(getActivity()).queryRuns();
-		RunCursorAdapter adapter = new RunCursorAdapter(getActivity(), mCursor);
-		setListAdapter(adapter);
+		getLoaderManager().initLoader(0, null, this);
 	}
 
 	@Override
@@ -51,15 +52,8 @@ public class RunListFragment extends ListFragment {
 	@Override
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {
 		if (REQUEST_NEW_RUN == requestCode) {
-			mCursor.requery();
-			((RunCursorAdapter) getListAdapter()).notifyDataSetChanged();
+			getLoaderManager().restartLoader(0, null, this);
 		}
-	}
-
-	@Override
-	public void onDestroy() {
-		mCursor.close();
-		super.onDestroy();
 	}
 
 	@Override
@@ -67,6 +61,20 @@ public class RunListFragment extends ListFragment {
 		Intent i = new Intent(getActivity(), RunActivity.class);
 		i.putExtra(RunActivity.EXTRA_RUN_ID, id);
 		startActivity(i);
+	}
+
+	private static class RunListCursorLoader extends SQLiteCursorLoader {
+
+		public RunListCursorLoader(Context context) {
+			super(context);
+		}
+
+		@Override
+		protected Cursor loadCursor() {
+			// TODO Auto-generated method stub
+			return RunManager.get(getContext()).queryRuns();
+		}
+
 	}
 
 	private static class RunCursorAdapter extends CursorAdapter {
@@ -97,5 +105,27 @@ public class RunListFragment extends ListFragment {
 			return inflater.inflate(android.R.layout.simple_list_item_1,
 					parent, false);
 		}
+	}
+
+	@Override
+	public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+		// TODO Auto-generated method stub
+
+		return new RunListCursorLoader(getActivity());
+	}
+
+	@Override
+	public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
+		// TODO Auto-generated method stub
+		RunCursorAdapter adapter = new RunCursorAdapter(getActivity(),
+				(RunCursor) cursor);
+		setListAdapter(adapter);
+	}
+
+	@Override
+	public void onLoaderReset(Loader<Cursor> loader) {
+		// TODO Auto-generated method stub
+		setListAdapter(null);
+
 	}
 }
