@@ -8,6 +8,9 @@ import android.location.Location;
 import android.location.LocationManager;
 import android.util.Log;
 
+import com.rayeldatu.android.runtracker.RunDatabaseHelper.LocationCursor;
+import com.rayeldatu.android.runtracker.RunDatabaseHelper.RunCursor;
+
 public class RunManager {
 	private static final String TAG = "RunManager";
 	public static final String ACTION_LOCATION = "com.rayeldatu.android.runtracker.ACTION_LOCATION";
@@ -20,7 +23,7 @@ public class RunManager {
 
 	private RunDatabaseHelper mHelper;
 	private SharedPreferences mPrefs;
-	private long mCurrentId;
+	private long mCurrentRunId;
 
 	private RunManager(Context appContext) {
 		mAppContext = appContext;
@@ -29,7 +32,7 @@ public class RunManager {
 		mHelper = new RunDatabaseHelper(mAppContext);
 		mPrefs = mAppContext.getSharedPreferences(PREFS_FILE,
 				Context.MODE_PRIVATE);
-		mCurrentId = mPrefs.getLong(PREF_CURRENT_RUN_ID, -1);
+		mCurrentRunId = mPrefs.getLong(PREF_CURRENT_RUN_ID, -1);
 	}
 
 	public static RunManager get(Context c) {
@@ -42,7 +45,7 @@ public class RunManager {
 	private PendingIntent getLocationPendingIntent(boolean shouldCreate) {
 		Intent broadcast = new Intent(ACTION_LOCATION);
 		int flags = shouldCreate ? 0 : PendingIntent.FLAG_NO_CREATE;
-		return PendingIntent.getBroadcast(mAppContext, 0, broadcast, 0);
+		return PendingIntent.getBroadcast(mAppContext, 0, broadcast, flags);
 	}
 
 	public void startLocationUpdates() {
@@ -83,14 +86,14 @@ public class RunManager {
 	}
 
 	public void startTrackingRun(Run run) {
-		mCurrentId = run.getId();
-		mPrefs.edit().putLong(PREF_CURRENT_RUN_ID, mCurrentId).commit();
+		mCurrentRunId = run.getId();
+		mPrefs.edit().putLong(PREF_CURRENT_RUN_ID, mCurrentRunId).commit();
 		startLocationUpdates();
 	}
 
 	public void stopRun() {
 		stopLocationUpdates();
-		mCurrentId = -1;
+		mCurrentRunId = -1;
 		mPrefs.edit().remove(PREF_CURRENT_RUN_ID).commit();
 	}
 
@@ -100,8 +103,47 @@ public class RunManager {
 		return run;
 	}
 
+	public Run getRun(long id) {
+
+		Run run = null;
+		RunCursor cursor = mHelper.queryRun(id);
+		cursor.moveToFirst();
+		if (!cursor.isAfterLast())
+			run = cursor.getRun();
+		cursor.close();
+		return run;
+	}
+
+	public RunCursor queryRuns() {
+		return mHelper.queryRuns();
+	}
+
+	public void insertLocation(Location loc) {
+		if (mCurrentRunId != -1) {
+			mHelper.insertLocation(mCurrentRunId, loc);
+		} else
+			Log.e(TAG, "Location Received with no tracking run; ignoring...");
+	}
+
+	public Location getLastLocationForRun(long runId) {
+		Location location = null;
+		Log.d(TAG, "runId is " + runId);
+		LocationCursor cursor = mHelper.queryLastLocationForRun(runId);
+		cursor.moveToFirst();
+		Log.d(TAG, "query has no contents " + (cursor.isAfterLast()));
+		if (!cursor.isAfterLast())
+			location = cursor.getLocation();
+		cursor.close();
+		Log.d(TAG, "location is null : " + (location == null));
+		return location;
+	}
+
 	public boolean isTrackingRun() {
 		return getLocationPendingIntent(false) != null;
+	}
+
+	public boolean isTrackingRun(Run run) {
+		return run != null && run.getId() == mCurrentRunId;
 	}
 
 }
