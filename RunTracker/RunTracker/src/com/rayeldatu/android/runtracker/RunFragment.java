@@ -15,15 +15,30 @@ import android.widget.TextView;
 
 public class RunFragment extends Fragment {
 	private static final String TAG = "RunFragment";
+<<<<<<< HEAD
+=======
+	private static final String ARG_RUN_ID = "RUN_ID";
+>>>>>>> origin/Chapter34
 	private Button mStartButton, mStopButton;
 	private TextView mStartedTextView, mLatitudeTextView, mLongitudeTextView,
 			mAltitudeTextView, mDurationTextView;
 	private RunManager mRunManager;
 	private Run mRun;
 	private Location mLastLocation;
+
+	public static RunFragment newInstance(long runId) {
+		Bundle args = new Bundle();
+		args.putLong(ARG_RUN_ID, runId);
+		RunFragment rf = new RunFragment();
+		rf.setArguments(args);
+		return rf;
+	}
+
 	private BroadcastReceiver mLocationReceiver = new LocationReceiver() {
 		@Override
 		protected void onLocationReceived(Context context, Location loc) {
+			if (!mRunManager.isTrackingRun(mRun))
+				return;
 			mLastLocation = loc;
 			if (isVisible())
 				updateUI();
@@ -35,6 +50,16 @@ public class RunFragment extends Fragment {
 		super.onCreate(savedInstanceState);
 		setRetainInstance(true);
 		mRunManager = RunManager.get(getActivity());
+		Bundle args = getArguments();
+		if (args != null) {
+			long runId = args.getLong(ARG_RUN_ID, -1);
+			Log.d(TAG, "runId is " + runId);
+			if (runId != -1) {
+				mRun = mRunManager.getRun(runId);
+				mLastLocation = mRunManager.getLastLocationForRun(runId);
+				Log.d(TAG, "mLastLocation is null: " + (mLastLocation==null));
+			}
+		}
 	}
 
 	@Override
@@ -58,8 +83,11 @@ public class RunFragment extends Fragment {
 			@Override
 			public void onClick(View v) {
 				// TODO Auto-generated method stub
-				mRunManager.startLocationUpdates();
-				mRun = new Run();
+				if (mRun == null) {
+					mRun = mRunManager.startNewRun();
+				} else {
+					mRunManager.startTrackingRun(mRun);
+				}
 				updateUI();
 			}
 		});
@@ -93,13 +121,17 @@ public class RunFragment extends Fragment {
 
 	private void updateUI() {
 		boolean started = mRunManager.isTrackingRun();
+<<<<<<< HEAD
 		Log.d(TAG, "STARTED: " + started);
 		
+=======
+		boolean trackingThisRun = mRunManager.isTrackingRun(mRun);
+>>>>>>> origin/Chapter34
 		if (mRun != null)
 			mStartedTextView.setText(mRun.getStartDate().toString());
 
 		int durationSeconds = 0;
-
+		Log.d(TAG,(mRun != null && mLastLocation != null) + "");
 		if (mRun != null && mLastLocation != null) {
 			durationSeconds = mRun.getDurationSeconds(mLastLocation.getTime());
 			mLatitudeTextView.setText(Double.toString(mLastLocation
@@ -112,6 +144,6 @@ public class RunFragment extends Fragment {
 		mDurationTextView.setText(Run.formatDuration(durationSeconds));
 
 		mStartButton.setEnabled(!started);
-		mStopButton.setEnabled(started);
+		mStopButton.setEnabled(started && trackingThisRun);
 	}
 }

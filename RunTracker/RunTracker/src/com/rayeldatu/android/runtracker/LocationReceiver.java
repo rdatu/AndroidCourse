@@ -13,6 +13,7 @@ public class LocationReceiver extends BroadcastReceiver {
 	@Override
 	public void onReceive(Context context, Intent intent) {
 		// TODO Auto-generated method stub
+		Log.d(TAG,"O m g");
 		Location loc = (Location) intent
 				.getParcelableExtra(LocationManager.KEY_LOCATION_CHANGED);
 		if (loc != null) {
